@@ -11,12 +11,21 @@ const pool = new Pool({connectionString: connectionString});
 
 app.set("port", (process.env.PORT || 5000));
 
-
-
+app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.set('views', 'views');
+app.set('view engine', 'ejs');
 
 app.get("/", function(req, res) {
     res.write("<h1>Root Page</h1>");
-})
+});
+
+app.get("/twitterSearch", function(req, res) {
+    var params = {};
+    res.render("twitterSearch", params);
+});
+
 app.get("/getTable", getTable);
 app.get("/getTwitter", getTwitterSearch);
 
@@ -26,7 +35,9 @@ app.listen(app.get("port"), function() {
     console.log("Now listening for connections on port: ", app.get("port"));
 });
 
-
+/**********************************************************
+* DATABASE
+**********************************************************/
 
 
 function getTable(req, res) {
@@ -36,8 +47,6 @@ function getTable(req, res) {
     console.log("Got person with id: ", id);
     
     getTableFromDB(id, function(error, result) {
-        //res.write(result[0]);  ---- This line crashes the server
-        
         console.log("Back from DB with result: ", result);
         res.json(result);
     });
@@ -62,25 +71,29 @@ function getTableFromDB(id, callback) {
     });
 }
 
-function getTwitterSearch(req, res) {
-    console.log("Connecting to Twitter");
-    
-    var twitter = connectToTwitter();
-    
-    
-    //Test API connection
-    console.log("Getting Results");
-    twitter.getSearch({'q':'#haiku','count': 10}, twitterError, 
-        function(data){
-            console.log('Data [%s]', data);
-            res.write(data);
-    });
-    res.write("<h1>Searching for #haiku</h1>");
-}
+
+/**********************************************************
+* TWITTER
+**********************************************************/
 
 var twitterError = function (err, response, body) {
 	console.log('ERROR [%s]', err);
 };
+
+function getTwitterSearch(req, res) {
+    console.log("Connecting to Twitter");
+    
+    var twitter = connectToTwitter();
+    var response = "Default response";
+    var searchString = req.query.search;
+    
+    //API connection - passes back "body" - hopefully JSON data/string.
+    console.log("Getting Results");
+    twitter.getSearch({'q': searchString,'count': 10}, twitterError, 
+        function(data){
+            res.json(data);
+    });
+}
 
 function connectToTwitter() {
     var config = {
