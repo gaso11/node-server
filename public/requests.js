@@ -1,3 +1,50 @@
+const saltRounds = 10;
+
+function openLogin() {
+    var modal = document.getElementById('myModalL');
+    var user = $('#loginUser').val();
+    var pass = $('#loginPass').val();
+    
+    $.post("/login?user=" + user + "&pass=" + pass, function(data, status){
+        if (data != "Failed")
+        {
+            modal.style.display = "none";
+            document.getElementById('welcome').innerHTML = "Welcome " + user + "!";
+        }
+        else
+        {
+            alert("Username or password not recognized");
+        }
+    });
+}
+
+function startSignup() {
+    //Just hard code right now
+    var modal = document.getElementById('myModalS');
+    var user = $('#signupUser').val();
+    var pass = $('#signupPass').val();
+    
+    if (pass == "") {
+        alert("Password cannot be blank");
+    }
+    else {
+    
+        $.post("/signup?user=" + user + "&pass=" + pass, function(data, status){
+        if (data != null)
+        {
+            modal.style.display = "none";
+            alert("Signup complete");
+        }
+        else
+        {
+            alert("That username has already been taken");
+        }
+	   });  
+    }
+    
+    
+}
+
 function startSearch() {
     console.log("Starting Search");
     
@@ -7,9 +54,8 @@ function startSearch() {
     //Call endpoint to start AJAX on server-side
     $.get("/getTwitter?search=" + param, function(data, status){
 		response = JSON.parse(data);
-        console.log(response);
         formatData(response);
-	})
+	});
 }
 
 function formatData(response) {
@@ -90,3 +136,13 @@ function formatData(response) {
         response.statuses[9].user.screen_name + "</a>";
     }
 };
+
+function searchToFavs() {
+    document.getElementById("searchResults").style.display = "none";
+    document.getElementById("favs").style.display = "block";
+}
+
+function favsToSearch() {
+    document.getElementById("favs").style.display = "none";
+    document.getElementById("searchResults").style.display = "block";
+}

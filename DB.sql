@@ -21,3 +21,6 @@ GRANT USAGE, SELECT ON SEQUENCE auser_id_seq TO familyhistoryuser;
 
 GRANT SELECT, INSERT, UPDATE ON favs TO familyhistoryuser;
 GRANT USAGE, SELECT ON SEQUENCE favs_id_seq TO familyhistoryuser;
+
+/* Here's hoping this doesn't screw up anything */
+ALTER TABLE auser ADD CONSTRAINT some_name  UNIQUE (username);
