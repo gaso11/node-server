@@ -234,6 +234,10 @@ blockquote.twitter-tweet a:focus {
   text-decoration: underline;
 }
 
+#bq1, #bq2, #bq3, #bq4, #bq5, #bq6, #bq7, #bq8, #bq9, #bq10 {
+    text-align: center;
+}
+
 /* ---------------------------------------------------
     MEDIAQUERIES
 ----------------------------------------------------- */

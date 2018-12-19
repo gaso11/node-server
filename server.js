@@ -7,6 +7,7 @@ var session = require('express-session');
 const { Pool } = require("pg");
 const connectionString = process.env.DATABASE_URL || "postgres://familyhistoryuser:elijah@localhost:5432/familyhistory"
 const pool = new Pool({connectionString: connectionString});
+var next = false;
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -32,10 +33,25 @@ app.get("/getTable", getTable);
 app.get("/getTwitter", getTwitterSearch);
 app.post("/signup", signup);
 app.post("/login", login);
+app.post("/save", savePost);
+app.post("/refresh", refresh);
+app.post("/getUser", getUser)
+app.post("/getId", getId);
 
 app.listen(app.get("port"), function() {
     console.log("Now listening for connections on port: ", app.get("port"));
 });
+
+
+function getUser(req, res) {
+    if (req.session.user) {
+        res.json(req.session.user);
+    }
+    else {
+        res.json("No user logged in");
+    }
+    
+}
 
 /**********************************************************
 * DATABASE
@@ -73,6 +89,68 @@ function getTableFromDBid(id, callback) {
         
         callback(null, result.rows);
     });
+}
+
+function getId(user, callback) {
+    var result = "Nothing happened :(";
+    getTableFromDBuser(user, function(error, result){
+        result = result[0].id;
+        //console.log(result);
+        res.json(result);
+    });
+}
+
+function refresh(req, res) {
+    var sql = "SELECT * FROM favs WHERE userid=$1::int";
+    var id;
+    
+    getTableFromDBuser(req.session.user, function(error, result){
+        console.log("Result: " + result[0].id);
+        id = result[0].id
+        console.log("Id: " + id);
+        
+        var params = [id];
+    
+        pool.query(sql, params, function(error, result) {
+            if (error) {
+                console.log("An error with DB occured");
+                console.log(error);
+                res.json(error);
+            }
+        
+            res.json(result);
+        });
+    });        
+}
+
+function savePost(req, res) {
+    if (!req.session.user){
+        res.json("Nope")
+    }
+    else {
+        post = req.query.post;
+        
+        console.log("About to insert post");
+        var sql = "INSERT INTO favs(userid, text) VALUES ($1::int, $2::text)"
+        var userid = "";
+        
+        getTableFromDBuser(req.session.user, function(error, result){
+            console.log("Result: " + result[0].id);
+            userid = result[0].id
+            
+            var params = [userid, post];
+            
+            pool.query(sql, params, function(error, result) {
+                if (error) {
+                    console.log("An error with DB occured");
+                    console.log(error);
+                    res.json(error);
+                }
+        
+                res.json(result);
+            });
+        });
+    }
 }
 
 function signup(req, res) {
